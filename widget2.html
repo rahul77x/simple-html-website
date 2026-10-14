@@ -303,7 +303,7 @@
     </div>
   </div>
 
-  <!-- Messenger & Interactivity Script -->
+  <!-- State Detector & Sample Widget Script -->
   <script>
     (function(){
       const container = document.getElementById('sample-widget-container');
@@ -314,21 +314,63 @@
       const sendBtn = document.getElementById('chat-send');
       const messagesElem = document.getElementById('chat-messages');
 
+      // Continuous detector for real Amazon Connect widget state
+      let lastOpenState = false;
+      function notifyParent(isOpen) {
+        if (isOpen !== lastOpenState) {
+          lastOpenState = isOpen;
+          window.parent.postMessage({
+            type: 'CHAT_STATE_CHANGED',
+            widgetIndex: 2,
+            isOpen: isOpen
+          }, '*');
+        }
+      }
+
+      function checkWidgetState() {
+        // 1. Detect real Amazon Connect hosted iframe state
+        const connectFrame = document.getElementById('amazon-connect-widget-frame') ||
+                             document.querySelector('iframe[id*="amazon-connect"]') ||
+                             document.querySelector('.amazon-connect-chat-interface');
+        if (connectFrame) {
+          const isOpen = connectFrame.classList.contains('show') || (connectFrame.offsetHeight > 140);
+          notifyParent(isOpen);
+          return;
+        }
+
+        // 2. Detect sample demo widget state
+        if (windowElem) {
+          const isOpen = windowElem.classList.contains('open');
+          notifyParent(isOpen);
+        }
+      }
+
+      setInterval(checkWidgetState, 200);
+
+      const observer = new MutationObserver(checkWidgetState);
+      observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+
+      // If real Amazon Connect snippet is active, hide sample UI
       if (typeof amazon_connect === 'function' || window.amazon_connect) {
         if (container) container.style.display = 'none';
+        if (typeof amazon_connect === 'function') {
+          amazon_connect('registerCallback', {
+            'WIDGET_FRAME_CLOSED': function() { notifyParent(false); }
+          });
+        }
         return;
       }
 
       function openChat() {
         launcher.style.display = 'none';
         windowElem.classList.add('open');
-        window.parent.postMessage({ type: 'CHAT_STATE_CHANGED', widgetIndex: 2, isOpen: true }, '*');
+        notifyParent(true);
       }
 
       function closeChat() {
         windowElem.classList.remove('open');
         launcher.style.display = 'flex';
-        window.parent.postMessage({ type: 'CHAT_STATE_CHANGED', widgetIndex: 2, isOpen: false }, '*');
+        notifyParent(false);
       }
 
       launcher.addEventListener('click', openChat);

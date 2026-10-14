@@ -51,12 +51,11 @@
       z-index: 10;
     }
 
-    /* Resizable Widget Card: Default 390px width & 620px height */
+    /* Widget Card: Collapsed to bottom (80px) when closed so nothing floats in the middle */
     .widget-card {
       width: 390px;
       max-width: calc((100vw - 80px) / 3);
-      height: 620px;
-      max-height: calc(100vh - 80px);
+      height: 80px; /* Collapsed when closed */
       background: transparent;
       border: none;
       box-shadow: none;
@@ -64,24 +63,36 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-      transition: width 0.2s ease, height 0.2s ease;
+      transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease;
     }
 
-    .widget-card.resizing {
-      transition: none; /* Smooth dragging without transition lag */
+    /* When Chat Widget is opened: Expands smoothly to full spacious height */
+    .widget-card.chat-open {
+      height: 620px;
+      max-height: calc(100vh - 80px);
     }
 
-    /* Card Top Bar with Pill & Resize Controls */
+    /* Card Top Bar with Pill & Resizer: Hidden when closed, visible ONLY when opened */
     .card-top-bar {
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: space-between;
       width: 100%;
       margin-bottom: 8px;
       gap: 8px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
     }
 
-    /* Minimalist Frosted-Glass Pill (Always visible & hoverable) */
+    /* Shows only when chat widget is active/opened */
+    .widget-card.chat-open .card-top-bar {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Minimalist Frosted-Glass Pill */
     .frosted-pill {
       background: rgba(15, 23, 42, 0.88);
       color: #ffffff;
@@ -106,7 +117,6 @@
       background: rgba(15, 23, 42, 0.98);
       border-color: rgba(255, 255, 255, 0.45);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
-      transform: translateY(-1px);
     }
 
     /* Variant-specific accent dots */
@@ -216,7 +226,7 @@
       font-weight: 500;
     }
 
-    /* Card Resize Controls */
+    /* Card Resize Controls (S / M / L / Maximize) */
     .card-size-controls {
       display: inline-flex;
       align-items: center;
@@ -251,32 +261,6 @@
       background: #0052cc;
     }
 
-    /* Drag Resize Handle (Bottom-Right corner) */
-    .resize-handle {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      width: 18px;
-      height: 18px;
-      cursor: nwse-resize;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      color: white;
-      opacity: 0.6;
-      transition: opacity 0.2s, background 0.2s;
-      z-index: 30;
-      user-select: none;
-    }
-
-    .resize-handle:hover {
-      opacity: 1;
-      background: #0052cc;
-    }
-
     .widget-frame {
       flex: 1;
       width: 100%;
@@ -287,8 +271,8 @@
 
     /* Responsive for smaller screens */
     @media (max-width: 1250px) {
-      .widget-card {
-        width: 340px;
+      .widget-card.chat-open {
+        width: 350px;
         height: 560px;
       }
     }
@@ -301,7 +285,9 @@
       .widget-card {
         width: 100%;
         max-width: 440px;
-        height: 620px;
+      }
+      .widget-card.chat-open {
+        height: 600px;
       }
     }
   </style>
@@ -428,10 +414,60 @@
   </main>
 
   <script>
-    // Quick Size Presets: S, M, L
+    // State Tracker: Updates card height and shows/hides top bar
+    function updateCardState(index, isOpen) {
+      const card = document.getElementById('widget-card-' + index);
+      if (card) {
+        if (isOpen) {
+          card.classList.add('chat-open');
+        } else {
+          card.classList.remove('chat-open');
+          // Reset inline size when closed
+          card.style.width = '';
+          card.style.height = '';
+        }
+      }
+    }
+
+    // 1. Listen for postMessage from child frames
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'CHAT_STATE_CHANGED') {
+        updateCardState(event.data.widgetIndex, event.data.isOpen);
+      }
+    });
+
+    // 2. Direct same-origin iframe inspection (detects Amazon Connect #amazon-connect-widget-frame.show)
+    function inspectChildFrames() {
+      for (let i = 1; i <= 3; i++) {
+        const iframe = document.querySelector(`#widget-card-${i} iframe`);
+        if (iframe && iframe.contentDocument) {
+          try {
+            // Check real Amazon Connect hosted widget frame
+            const connectFrame = iframe.contentDocument.getElementById('amazon-connect-widget-frame') ||
+                                 iframe.contentDocument.querySelector('iframe[id*="amazon-connect"]');
+            // Check sample widget window
+            const sample = iframe.contentDocument.getElementById('sample-window');
+
+            let isOpen = false;
+            if (connectFrame) {
+              isOpen = connectFrame.classList.contains('show') || (connectFrame.offsetHeight > 140);
+            } else if (sample) {
+              isOpen = sample.classList.contains('open');
+            }
+
+            updateCardState(i, isOpen);
+          } catch(e) {}
+        }
+      }
+    }
+
+    // Check periodically for instant state detection
+    setInterval(inspectChildFrames, 250);
+
+    // Quick Size Presets: S, M, L (When open)
     function setSize(widgetIndex, size) {
       const card = document.getElementById('widget-card-' + widgetIndex);
-      if (!card) return;
+      if (!card || !card.classList.contains('chat-open')) return;
 
       card.classList.remove('maximized');
       card.style.maxWidth = 'none';
@@ -448,7 +484,6 @@
         card.style.height = '680px';
       }
 
-      // Update active button state
       const buttons = card.querySelectorAll('.size-btn');
       buttons.forEach(b => b.classList.remove('active'));
       const activeBtn = card.querySelector(`[data-size="${size}"]`);
@@ -458,7 +493,7 @@
     // Toggle Maximize to full height
     function toggleMaximize(widgetIndex) {
       const card = document.getElementById('widget-card-' + widgetIndex);
-      if (!card) return;
+      if (!card || !card.classList.contains('chat-open')) return;
 
       if (card.classList.contains('maximized')) {
         card.classList.remove('maximized');
