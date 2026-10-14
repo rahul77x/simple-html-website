@@ -44,17 +44,19 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      gap: 16px;
+      gap: 18px;
       padding: 20px;
       width: 100%;
       position: relative;
       z-index: 10;
     }
 
-    /* Compact, transparent widget card */
+    /* Resizable Widget Card: Default 390px width & 620px height */
     .widget-card {
-      width: 300px;
-      height: 470px;
+      width: 390px;
+      max-width: calc((100vw - 80px) / 3);
+      height: 620px;
+      max-height: calc(100vh - 80px);
       background: transparent;
       border: none;
       box-shadow: none;
@@ -62,47 +64,49 @@
       flex-direction: column;
       align-items: center;
       position: relative;
+      transition: width 0.2s ease, height 0.2s ease;
     }
 
-    /* Minimalist Frosted-Glass Pill (Hidden by default, appears when chat is clicked/opened) */
+    .widget-card.resizing {
+      transition: none; /* Smooth dragging without transition lag */
+    }
+
+    /* Card Top Bar with Pill & Resize Controls */
+    .card-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    /* Minimalist Frosted-Glass Pill (Always visible & hoverable) */
     .frosted-pill {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       color: #ffffff;
       font-size: 11.5px;
       font-weight: 600;
-      padding: 5px 12px;
+      padding: 6px 12px;
       border-radius: 20px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      cursor: default;
+      cursor: pointer;
       position: relative;
-      margin-bottom: 8px;
       user-select: none;
-      
-      /* Hidden initially so it doesn't float in mid-air */
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(12px);
-      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-      pointer-events: none;
-    }
-
-    /* Appears smoothly right above the chat window when opened */
-    .widget-card.chat-open .frosted-pill {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      pointer-events: auto;
+      transition: all 0.2s ease;
     }
 
     .frosted-pill:hover {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(15, 23, 42, 0.98);
+      border-color: rgba(255, 255, 255, 0.45);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+      transform: translateY(-1px);
     }
 
     /* Variant-specific accent dots */
@@ -122,7 +126,7 @@
       width: 15px;
       height: 15px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.22);
       font-size: 10px;
       font-style: italic;
       font-family: serif;
@@ -130,36 +134,38 @@
       align-items: center;
       justify-content: center;
       color: #e2e8f0;
-      transition: background 0.2s;
     }
 
     .frosted-pill:hover .info-icon {
-      background: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.4);
       color: #ffffff;
     }
 
-    /* Tooltip Card (Revealed on hover) */
+    /* Tooltip Card (Appears reliably on hover) */
     .pill-tooltip {
-      visibility: hidden;
-      opacity: 0;
+      display: none;
       position: absolute;
       bottom: calc(100% + 10px);
-      left: 50%;
-      transform: translateX(-50%) translateY(4px);
-      width: 250px;
-      background: rgba(10, 18, 30, 0.96);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      left: 0;
+      width: 270px;
+      background: rgba(10, 18, 30, 0.98);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 10px;
-      padding: 10px 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      padding: 12px 14px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
       color: #cbd5e1;
       font-size: 11px;
       line-height: 1.45;
+      z-index: 99999;
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-      z-index: 1000;
+      animation: tooltipFade 0.2s ease-out;
+    }
+
+    @keyframes tooltipFade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Tooltip Arrow */
@@ -167,18 +173,15 @@
       content: "";
       position: absolute;
       top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 5px;
+      left: 24px;
+      border-width: 6px;
       border-style: solid;
-      border-color: rgba(10, 18, 30, 0.96) transparent transparent transparent;
+      border-color: rgba(10, 18, 30, 0.98) transparent transparent transparent;
     }
 
-    /* Show Tooltip on Hover */
+    /* Reliable hover trigger */
     .frosted-pill:hover .pill-tooltip {
-      visibility: visible;
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      display: block;
     }
 
     .tooltip-title {
@@ -187,14 +190,11 @@
       color: #ffffff;
       margin-bottom: 6px;
       padding-bottom: 4px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .tooltip-row {
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       display: flex;
       flex-direction: column;
     }
@@ -204,7 +204,7 @@
     }
 
     .tooltip-label {
-      font-size: 10px;
+      font-size: 9.5px;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.4px;
@@ -216,6 +216,67 @@
       font-weight: 500;
     }
 
+    /* Card Resize Controls */
+    .card-size-controls {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 2px 4px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+      gap: 2px;
+    }
+
+    .size-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 3px 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .size-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .size-btn.active {
+      color: #ffffff;
+      background: #0052cc;
+    }
+
+    /* Drag Resize Handle (Bottom-Right corner) */
+    .resize-handle {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 18px;
+      height: 18px;
+      cursor: nwse-resize;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: white;
+      opacity: 0.6;
+      transition: opacity 0.2s, background 0.2s;
+      z-index: 30;
+      user-select: none;
+    }
+
+    .resize-handle:hover {
+      opacity: 1;
+      background: #0052cc;
+    }
+
     .widget-frame {
       flex: 1;
       width: 100%;
@@ -225,6 +286,13 @@
     }
 
     /* Responsive for smaller screens */
+    @media (max-width: 1250px) {
+      .widget-card {
+        width: 340px;
+        height: 560px;
+      }
+    }
+
     @media (max-width: 950px) {
       .widgets-container {
         flex-direction: column;
@@ -232,8 +300,8 @@
       }
       .widget-card {
         width: 100%;
-        max-width: 320px;
-        height: 380px;
+        max-width: 440px;
+        height: 620px;
       }
     }
   </style>
@@ -243,103 +311,165 @@
   <!-- Top Right Blue Box -->
   <div class="demo-badge">GWS AI Chatbot Demo</div>
 
-  <!-- 3 Transparent, Compact Widget Slots -->
+  <!-- 3 Resizable Widget Slots with Frosted-Glass Hover Tooltips -->
   <main class="widgets-container">
 
     <!-- Widget 1: Connect Native Agent -->
     <div class="widget-card" id="widget-card-1">
-      <div class="frosted-pill">
-        <span class="accent-dot dot-1"></span>
-        <span>Native Connect Agent</span>
-        <span class="info-icon">i</span>
+      <div class="card-top-bar">
+        <div class="frosted-pill">
+          <span class="accent-dot dot-1"></span>
+          <span>Native Connect Agent</span>
+          <span class="info-icon">i</span>
 
-        <div class="pill-tooltip">
-          <div class="tooltip-title">⚡ Out-of-the-Box Assistant</div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Web Crawler:</span>
-            <span class="tooltip-value">Amazon Connect Native Crawler</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Knowledge Base:</span>
-            <span class="tooltip-value">In-built Connect AI Knowledge Base</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Architecture:</span>
-            <span class="tooltip-value">Native Connect Turnkey Agent</span>
+          <div class="pill-tooltip">
+            <div class="tooltip-title">⚡ Out-of-the-Box Assistant</div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Web Crawler:</span>
+              <span class="tooltip-value">Amazon Connect Native Crawler</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Knowledge Base:</span>
+              <span class="tooltip-value">In-built Connect AI Knowledge Base</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Architecture:</span>
+              <span class="tooltip-value">Native Connect Turnkey Agent</span>
+            </div>
           </div>
         </div>
+
+        <!-- Size Switcher -->
+        <div class="card-size-controls">
+          <button class="size-btn" data-size="compact" onclick="setSize(1, 'compact')" title="Compact: 320x480">S</button>
+          <button class="size-btn active" data-size="normal" onclick="setSize(1, 'normal')" title="Standard: 390x620">M</button>
+          <button class="size-btn" data-size="large" onclick="setSize(1, 'large')" title="Large: 460x680">L</button>
+          <button class="size-btn" onclick="toggleMaximize(1)" title="Maximize Height">⛶</button>
+        </div>
       </div>
+
       <iframe class="widget-frame" src="widget1.html" allowtransparency="true"></iframe>
     </div>
 
     <!-- Widget 2: Bedrock Managed KB -->
     <div class="widget-card" id="widget-card-2">
-      <div class="frosted-pill">
-        <span class="accent-dot dot-2"></span>
-        <span>Bedrock Managed KB</span>
-        <span class="info-icon">i</span>
+      <div class="card-top-bar">
+        <div class="frosted-pill">
+          <span class="accent-dot dot-2"></span>
+          <span>Bedrock Managed KB</span>
+          <span class="info-icon">i</span>
 
-        <div class="pill-tooltip">
-          <div class="tooltip-title">🧠 Enterprise Managed RAG</div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Web Crawler:</span>
-            <span class="tooltip-value">Amazon Bedrock Native Web Crawler</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Knowledge Base:</span>
-            <span class="tooltip-value">Bedrock Knowledge Base</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Vector Store:</span>
-            <span class="tooltip-value">AWS Managed Vector Pipeline</span>
+          <div class="pill-tooltip">
+            <div class="tooltip-title">🧠 Enterprise Managed RAG</div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Web Crawler:</span>
+              <span class="tooltip-value">Amazon Bedrock Native Web Crawler</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Knowledge Base:</span>
+              <span class="tooltip-value">Bedrock Knowledge Base</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Vector Store:</span>
+              <span class="tooltip-value">AWS Managed Vector Pipeline</span>
+            </div>
           </div>
         </div>
+
+        <!-- Size Switcher -->
+        <div class="card-size-controls">
+          <button class="size-btn" data-size="compact" onclick="setSize(2, 'compact')" title="Compact: 320x480">S</button>
+          <button class="size-btn active" data-size="normal" onclick="setSize(2, 'normal')" title="Standard: 390x620">M</button>
+          <button class="size-btn" data-size="large" onclick="setSize(2, 'large')" title="Large: 460x680">L</button>
+          <button class="size-btn" onclick="toggleMaximize(2)" title="Maximize Height">⛶</button>
+        </div>
       </div>
+
       <iframe class="widget-frame" src="widget2.html" allowtransparency="true"></iframe>
     </div>
 
     <!-- Widget 3: Custom Crawler + OpenSearch Vector -->
     <div class="widget-card" id="widget-card-3">
-      <div class="frosted-pill">
-        <span class="accent-dot dot-3"></span>
-        <span>Custom Crawler + Vector</span>
-        <span class="info-icon">i</span>
+      <div class="card-top-bar">
+        <div class="frosted-pill">
+          <span class="accent-dot dot-3"></span>
+          <span>Custom Crawler + Vector</span>
+          <span class="info-icon">i</span>
 
-        <div class="pill-tooltip">
-          <div class="tooltip-title">🎯 Advanced Semantic Search</div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Web Crawler:</span>
-            <span class="tooltip-value">Custom Web Scraper (Dynamic JS & Clean DOM)</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Knowledge Base:</span>
-            <span class="tooltip-value">Bedrock Knowledge Base</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="tooltip-label">Vector Store:</span>
-            <span class="tooltip-value">Amazon OpenSearch Vector Index</span>
+          <div class="pill-tooltip">
+            <div class="tooltip-title">🎯 Advanced Semantic Search</div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Web Crawler:</span>
+              <span class="tooltip-value">Custom Scraper (Dynamic JS & Clean DOM)</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Knowledge Base:</span>
+              <span class="tooltip-value">Bedrock Knowledge Base</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Vector Store:</span>
+              <span class="tooltip-value">Amazon OpenSearch Vector Index</span>
+            </div>
           </div>
         </div>
+
+        <!-- Size Switcher -->
+        <div class="card-size-controls">
+          <button class="size-btn" data-size="compact" onclick="setSize(3, 'compact')" title="Compact: 320x480">S</button>
+          <button class="size-btn active" data-size="normal" onclick="setSize(3, 'normal')" title="Standard: 390x620">M</button>
+          <button class="size-btn" data-size="large" onclick="setSize(3, 'large')" title="Large: 460x680">L</button>
+          <button class="size-btn" onclick="toggleMaximize(3)" title="Maximize Height">⛶</button>
+        </div>
       </div>
+
       <iframe class="widget-frame" src="widget3.html" allowtransparency="true"></iframe>
     </div>
 
   </main>
 
   <script>
-    // Listen for chat widget open/close events from child iframes
-    window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'CHAT_STATE_CHANGED') {
-        const card = document.getElementById('widget-card-' + event.data.widgetIndex);
-        if (card) {
-          if (event.data.isOpen) {
-            card.classList.add('chat-open');
-          } else {
-            card.classList.remove('chat-open');
-          }
-        }
+    // Quick Size Presets: S, M, L
+    function setSize(widgetIndex, size) {
+      const card = document.getElementById('widget-card-' + widgetIndex);
+      if (!card) return;
+
+      card.classList.remove('maximized');
+      card.style.maxWidth = 'none';
+      card.style.maxHeight = 'none';
+
+      if (size === 'compact') {
+        card.style.width = '320px';
+        card.style.height = '480px';
+      } else if (size === 'normal') {
+        card.style.width = '390px';
+        card.style.height = '620px';
+      } else if (size === 'large') {
+        card.style.width = '460px';
+        card.style.height = '680px';
       }
-    });
+
+      // Update active button state
+      const buttons = card.querySelectorAll('.size-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      const activeBtn = card.querySelector(`[data-size="${size}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    // Toggle Maximize to full height
+    function toggleMaximize(widgetIndex) {
+      const card = document.getElementById('widget-card-' + widgetIndex);
+      if (!card) return;
+
+      if (card.classList.contains('maximized')) {
+        card.classList.remove('maximized');
+        setSize(widgetIndex, 'normal');
+      } else {
+        card.classList.add('maximized');
+        card.style.maxWidth = 'none';
+        card.style.width = '480px';
+        card.style.height = 'calc(100vh - 90px)';
+      }
+    }
   </script>
 
 </body>
