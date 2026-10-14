@@ -47,18 +47,173 @@
       gap: 16px;
       padding: 20px;
       width: 100%;
+      position: relative;
+      z-index: 10;
     }
 
-    /* Compact, transparent widget card without white background or border */
+    /* Compact, transparent widget card */
     .widget-card {
       width: 300px;
-      height: 440px;
+      height: 470px;
       background: transparent;
       border: none;
       box-shadow: none;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+    }
+
+    /* Minimalist Frosted-Glass Pill (Hidden by default, appears when chat is clicked/opened) */
+    .frosted-pill {
+      background: rgba(15, 23, 42, 0.85);
+      color: #ffffff;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: default;
+      position: relative;
+      margin-bottom: 8px;
+      user-select: none;
+      
+      /* Hidden initially so it doesn't float in mid-air */
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px);
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+      pointer-events: none;
+    }
+
+    /* Appears smoothly right above the chat window when opened */
+    .widget-card.chat-open .frosted-pill {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .frosted-pill:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Variant-specific accent dots */
+    .accent-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-1 { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
+    .dot-2 { background: #34d399; box-shadow: 0 0 6px #34d399; }
+    .dot-3 { background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
+
+    /* Info Icon */
+    .info-icon {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      font-size: 10px;
+      font-style: italic;
+      font-family: serif;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #e2e8f0;
+      transition: background 0.2s;
+    }
+
+    .frosted-pill:hover .info-icon {
+      background: rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+    }
+
+    /* Tooltip Card (Revealed on hover) */
+    .pill-tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      width: 250px;
+      background: rgba(10, 18, 30, 0.96);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      color: #cbd5e1;
+      font-size: 11px;
+      line-height: 1.45;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      z-index: 1000;
+    }
+
+    /* Tooltip Arrow */
+    .pill-tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+      border-color: rgba(10, 18, 30, 0.96) transparent transparent transparent;
+    }
+
+    /* Show Tooltip on Hover */
+    .frosted-pill:hover .pill-tooltip {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .tooltip-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tooltip-row {
+      margin-bottom: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tooltip-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .tooltip-label {
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .tooltip-value {
+      font-size: 11px;
+      color: #f1f5f9;
+      font-weight: 500;
     }
 
     .widget-frame {
@@ -91,22 +246,101 @@
   <!-- 3 Transparent, Compact Widget Slots -->
   <main class="widgets-container">
 
-    <!-- Widget 1 -->
-    <div class="widget-card">
+    <!-- Widget 1: Connect Native Agent -->
+    <div class="widget-card" id="widget-card-1">
+      <div class="frosted-pill">
+        <span class="accent-dot dot-1"></span>
+        <span>Native Connect Agent</span>
+        <span class="info-icon">i</span>
+
+        <div class="pill-tooltip">
+          <div class="tooltip-title">⚡ Out-of-the-Box Assistant</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Web Crawler:</span>
+            <span class="tooltip-value">Amazon Connect Native Crawler</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Knowledge Base:</span>
+            <span class="tooltip-value">In-built Connect AI Knowledge Base</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Architecture:</span>
+            <span class="tooltip-value">Native Connect Turnkey Agent</span>
+          </div>
+        </div>
+      </div>
       <iframe class="widget-frame" src="widget1.html" allowtransparency="true"></iframe>
     </div>
 
-    <!-- Widget 2 -->
-    <div class="widget-card">
+    <!-- Widget 2: Bedrock Managed KB -->
+    <div class="widget-card" id="widget-card-2">
+      <div class="frosted-pill">
+        <span class="accent-dot dot-2"></span>
+        <span>Bedrock Managed KB</span>
+        <span class="info-icon">i</span>
+
+        <div class="pill-tooltip">
+          <div class="tooltip-title">🧠 Enterprise Managed RAG</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Web Crawler:</span>
+            <span class="tooltip-value">Amazon Bedrock Native Web Crawler</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Knowledge Base:</span>
+            <span class="tooltip-value">Bedrock Knowledge Base</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Vector Store:</span>
+            <span class="tooltip-value">AWS Managed Vector Pipeline</span>
+          </div>
+        </div>
+      </div>
       <iframe class="widget-frame" src="widget2.html" allowtransparency="true"></iframe>
     </div>
 
-    <!-- Widget 3 -->
-    <div class="widget-card">
+    <!-- Widget 3: Custom Crawler + OpenSearch Vector -->
+    <div class="widget-card" id="widget-card-3">
+      <div class="frosted-pill">
+        <span class="accent-dot dot-3"></span>
+        <span>Custom Crawler + Vector</span>
+        <span class="info-icon">i</span>
+
+        <div class="pill-tooltip">
+          <div class="tooltip-title">🎯 Advanced Semantic Search</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Web Crawler:</span>
+            <span class="tooltip-value">Custom Web Scraper (Dynamic JS & Clean DOM)</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Knowledge Base:</span>
+            <span class="tooltip-value">Bedrock Knowledge Base</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Vector Store:</span>
+            <span class="tooltip-value">Amazon OpenSearch Vector Index</span>
+          </div>
+        </div>
+      </div>
       <iframe class="widget-frame" src="widget3.html" allowtransparency="true"></iframe>
     </div>
 
   </main>
+
+  <script>
+    // Listen for chat widget open/close events from child iframes
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'CHAT_STATE_CHANGED') {
+        const card = document.getElementById('widget-card-' + event.data.widgetIndex);
+        if (card) {
+          if (event.data.isOpen) {
+            card.classList.add('chat-open');
+          } else {
+            card.classList.remove('chat-open');
+          }
+        }
+      }
+    });
+  </script>
 
 </body>
 </html>

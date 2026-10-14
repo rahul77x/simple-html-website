@@ -4,65 +4,243 @@
   <meta charset="UTF-8">
   <title>Amazon Connect Widget 3</title>
   <style>
+    :root {
+      --theme-color: #6554c0;
+      --theme-hover: #5243aa;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
 
     body {
-      min-height: 100vh;
+      width: 100%;
+      height: 100vh;
       background: transparent;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      align-items: center;
+      align-items: flex-end;
       padding: 12px;
+    }
+
+    /* Floating Chat Launcher Button */
+    .sample-launcher-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--theme-color);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .sample-launcher-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+    }
+
+    .sample-launcher-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* Sample Chat Window */
+    .sample-chat-window {
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      flex-direction: column;
       overflow: hidden;
+      animation: slideIn 0.25s ease-out;
     }
 
-    .placeholder-card {
-      background: rgba(255, 255, 255, 0.85);
-      border: 1.5px dashed #6554c0;
-      border-radius: 8px;
-      padding: 14px;
-      max-width: 250px;
-      text-align: center;
-      backdrop-filter: blur(4px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-bottom: 10px;
+    .sample-chat-window.open {
+      display: flex;
     }
 
-    .placeholder-card h3 {
-      color: #6554c0;
-      margin-bottom: 4px;
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Chat Header */
+    .chat-header {
+      background: var(--theme-color);
+      color: white;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+    }
+
+    .chat-title {
       font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
     }
 
-    .placeholder-card p {
-      font-size: 11px;
-      line-height: 1.4;
-      color: #4b5563;
-      margin-bottom: 8px;
-    }
-
-    .placeholder-card code {
-      background: #eeeafc;
-      padding: 2px 4px;
-      border-radius: 4px;
+    .chat-subtitle {
       font-size: 10.5px;
-      color: #6554c0;
-      font-weight: bold;
+      opacity: 0.85;
+    }
+
+    .chat-close-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+
+    .chat-close-btn:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Chat Messages Container */
+    .chat-messages {
+      flex: 1;
+      padding: 12px;
+      background: #f8fafc;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-bubble {
+      max-width: 84%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .chat-bubble.bot {
+      background: #eae6ff;
+      color: #253858;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+      border: 1px solid #c0b6f2;
+    }
+
+    .chat-bubble.user {
+      background: var(--theme-color);
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+
+    /* Quick Reply Chips */
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .quick-reply-pill {
+      background: #ffffff;
+      border: 1px solid var(--theme-color);
+      color: var(--theme-color);
+      font-size: 10.5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .quick-reply-pill:hover {
+      background: var(--theme-color);
+      color: white;
+    }
+
+    /* Chat Input Area */
+    .chat-input-bar {
+      padding: 8px 10px;
+      background: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .chat-input:focus {
+      border-color: var(--theme-color);
+    }
+
+    .chat-send-btn {
+      background: var(--theme-color);
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
     }
   </style>
 </head>
 <body>
 
   <!-- ======================================================== -->
-  <!-- PASTE YOUR AMAZON CONNECT SNIPPET FOR WIDGET 3 BELOW      -->
+  <!-- 1. REAL AMAZON CONNECT SNIPPET (PASTE BELOW WHEN READY)  -->
+  <!-- When you paste your real script below, the sample demo   -->
+  <!-- widget will automatically hide itself.                   -->
   <!-- ======================================================== -->
-
   <!--
   <script type="text/javascript">
     (function(w, d, x, id){
@@ -80,11 +258,136 @@
   </script>
   -->
 
-  <!-- Placeholder shown until snippet is pasted -->
-  <!-- <div class="placeholder-card">
-    <h3>Widget Slot 3</h3>
-    <p>Paste snippet in <code>widget3.html</code></p>
-  </div> -->
+  <!-- ======================================================== -->
+  <!-- 2. SAMPLE DEMO WIDGET (Active for testing & demoing)     -->
+  <!-- ======================================================== -->
+  <div id="sample-widget-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end;">
 
+    <!-- Floating Circular Launcher Button -->
+    <button id="sample-launcher" class="sample-launcher-btn" title="Open Chat (Custom Crawler + Vector)">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+    </button>
+
+    <!-- Simulated Chat Window -->
+    <div id="sample-window" class="sample-chat-window">
+      <div class="chat-header">
+        <div class="chat-title-wrap">
+          <div class="status-dot"></div>
+          <div>
+            <div class="chat-title">BOI Deep Search AI</div>
+            <div class="chat-subtitle">Custom Crawler + OpenSearch Vector</div>
+          </div>
+        </div>
+        <button id="sample-close" class="chat-close-btn" aria-label="Close" title="Close Chat">&times;</button>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-bubble bot">
+          <strong>Hello! Welcome to BOI Deep Search.</strong><br>
+          I am powered by a <em>Custom Headless Web Scraper + Amazon OpenSearch Vector Engine</em>. I can accurately parse dynamic tables, fees, and nested documentation.<br><br>
+          What would you like to explore?
+          <div class="quick-replies">
+            <span class="quick-reply-pill" onclick="sendReply('Schedule of Service Charges')">Service Charges</span>
+            <span class="quick-reply-pill" onclick="sendReply('Forex & NRI Rates')">Forex / NRI</span>
+            <span class="quick-reply-pill" onclick="sendReply('Locker Rental Rates')">Locker Charges</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
+        <button id="chat-send" class="chat-send-btn" title="Send">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messenger & Interactivity Script -->
+  <script>
+    (function(){
+      const container = document.getElementById('sample-widget-container');
+      const launcher = document.getElementById('sample-launcher');
+      const windowElem = document.getElementById('sample-window');
+      const closeBtn = document.getElementById('sample-close');
+      const inputElem = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send');
+      const messagesElem = document.getElementById('chat-messages');
+
+      if (typeof amazon_connect === 'function' || window.amazon_connect) {
+        if (container) container.style.display = 'none';
+        return;
+      }
+
+      function openChat() {
+        launcher.style.display = 'none';
+        windowElem.classList.add('open');
+        window.parent.postMessage({ type: 'CHAT_STATE_CHANGED', widgetIndex: 3, isOpen: true }, '*');
+      }
+
+      function closeChat() {
+        windowElem.classList.remove('open');
+        launcher.style.display = 'flex';
+        window.parent.postMessage({ type: 'CHAT_STATE_CHANGED', widgetIndex: 3, isOpen: false }, '*');
+      }
+
+      launcher.addEventListener('click', openChat);
+      closeBtn.addEventListener('click', closeChat);
+
+      window.sendReply = function(text) {
+        addUserMessage(text);
+        simulateBotResponse(text);
+      };
+
+      function addUserMessage(text) {
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble user';
+        bubble.textContent = text;
+        messagesElem.appendChild(bubble);
+        messagesElem.scrollTop = messagesElem.scrollHeight;
+      }
+
+      function addBotMessage(text) {
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble bot';
+        bubble.innerHTML = text;
+        messagesElem.appendChild(bubble);
+        messagesElem.scrollTop = messagesElem.scrollHeight;
+      }
+
+      function simulateBotResponse(query) {
+        setTimeout(() => {
+          const lower = query.toLowerCase();
+          if (lower.includes('charge') || lower.includes('fee')) {
+            addBotMessage("<strong>[OpenSearch Vector Index]</strong><br>Detailed Savings Account Service Charges (Extracted from dynamic table):<br>• Minimum QAB (Metro/Urban): ₹2,000<br>• Non-maintenance penalty: ₹50 to ₹150/month<br>• NEFT/RTGS via Net Banking: <strong>Free</strong>.");
+          } else if (lower.includes('locker')) {
+            addBotMessage("<strong>[OpenSearch Vector Index]</strong><br>Annual Safe Deposit Locker Rent (Metro Branches):<br>• Small: ₹1,500/year<br>• Medium: ₹3,000/year<br>• Large: ₹5,000/year<br><em>(Subject to availability & security deposit)</em>.");
+          } else if (lower.includes('forex') || lower.includes('nri')) {
+            addBotMessage("<strong>[OpenSearch Vector Index]</strong><br>NRE/NRO Term Deposit Rates (1 to 3 Years): <strong>7.00% to 7.15% p.a.</strong> with full repatriation of principal and interest in USD/EUR/GBP.");
+          } else {
+            addBotMessage(`<strong>[OpenSearch Vector Index]</strong><br>Deep semantic retrieval across custom-scraped DOM for: "<em>${query}</em>" with re-ranking score 0.94.`);
+          }
+        }, 500);
+      }
+
+      sendBtn.addEventListener('click', () => {
+        if (inputElem.value.trim()) {
+          const txt = inputElem.value.trim();
+          addUserMessage(txt);
+          inputElem.value = '';
+          simulateBotResponse(txt);
+        }
+      });
+
+      inputElem.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && inputElem.value.trim()) {
+          const txt = inputElem.value.trim();
+          addUserMessage(txt);
+          inputElem.value = '';
+          simulateBotResponse(txt);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
